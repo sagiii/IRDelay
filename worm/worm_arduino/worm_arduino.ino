@@ -10,6 +10,12 @@
 WormGeometry geom(1, 0.2, 1.2, 2, 15);
 Display disp(80, 70, 80, 160, 80);
 WormDrawable worm(geom, disp);
+Display disp2(80, 50, 60, 160, 80);
+WormDrawable worm2(geom, disp2);
+Display disp3(80, 30, 40, 160, 80);
+WormDrawable worm3(geom, disp3);
+Display disp4(80, 10, 20, 160, 80);
+WormDrawable worm4(geom, disp4);
 
 static LGFX lcd;
 static LGFX_Sprite sprite(&lcd);
@@ -35,17 +41,24 @@ void setup()
 
   worm.head_magnify = 1.2;
   worm.speed = 1;
-  worm.ease0.poly = Easing::QUART;
-  worm.ease0.in = true;
-  worm.ease0.out = true;
-  worm.ease1.poly = Easing::QUAD;
-  worm.ease1.in = true;
-  worm.ease1.out = true;
   worm.init();
   worm.setPosition(0, 1);
   worm.thick = 0.5;
   worm.width_magnify = 4;
   worm.body_color_mode = WormDrawable::GRADATION;
+  worm4.speed = 1.1;
+  worm4.length = 0.7;
+  worm4.body_color_mode = WormDrawable::RAINBOW;
+  worm3.speed = 0.5;
+  worm3.length = 1.5;
+  worm3.body_color_mode = WormDrawable::STRIPE;
+  worm3.body_color0 = Color(30, 30, 180);
+  worm3.body_color1 = Color(180, 180, 20);
+  worm2.speed = 0.7;
+  worm2.length = 3;
+  worm2.division = 30;
+  worm2.body_color_mode = WormDrawable::RANDOM;
+  worm2.reverse_mergin = 1;
 }
 
 void loop()
@@ -60,13 +73,10 @@ void loop()
     }
   }
   sprite.fillScreen(TFT_WHITE);
+  worm4.draw(sprite, dt);
+  worm3.draw(sprite, dt);
+  worm2.draw(sprite, dt);
   worm.draw(sprite, dt);
   delay(1); // 描画色が変になるのを防ぐ
   sprite.pushSprite(0, 0);
-
-  if (worm.direction > 0 && disp.isOutD(worm.linksd[0]).right) { // turn left
-    worm.setPosition(1.3, -1);
-  } else if (worm.direction < 0 && disp.isOutD(worm.linksd[0]).left) { // turn right
-    worm.setPosition(-1.3, 1);
-  }
 }

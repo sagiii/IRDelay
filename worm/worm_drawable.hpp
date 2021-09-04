@@ -66,10 +66,12 @@ struct WormDrawable : public WormGeometry {
     float rainbow_speed; // phase/sec
     unsigned int sprite_size;
     Display display;
+    bool do_reverse; // 画面から居なくなったら自動で折り返すかどうか
+    float reverse_mergin; // 折返し時にあおむしがセットされるのが画面の外に画面幅の何倍行ったところか？
     LGFX_Sprite sprite;
     std::vector<Color> body_colors;
     std::vector<Link2> linksd;
-    WormDrawable(WormGeometry &worm, Display &display_)
+    WormDrawable(WormGeometry const &worm, Display const &display_)
         : WormGeometry(worm)
         , head_color(255, 0, 0)
         , eye_color(255, 255, 0)
@@ -80,6 +82,8 @@ struct WormDrawable : public WormGeometry {
         , rainbow_speed(2)
         , sprite_size(80)
         , display(display_)
+        , do_reverse(true)
+        , reverse_mergin(0.1)
         {
             sprite.createSprite(sprite_size, sprite_size);
             sprite.setPivot(sprite_size / 2, sprite_size / 2);
@@ -124,19 +128,29 @@ struct WormDrawable : public WormGeometry {
             linksd[i].axis.y = -linksg[i].axis.y;
         }
         // draw
-        // 一旦ラフ版仕上げる
         for (int i = 0; i < division; i++) {
             sprite.clear();
             if (i == division - 1) { // head
                 sprite.setColor(head_color.to24Bit());
                 sprite.fillCircle(sprite_size / 2, sprite_size / 2, sprite_size / 2);
+                // TODO : 頭のディテールを描画
                 sprite.pushRotateZoom(&gfx, linksd[i].origin.x, linksd[i].origin.y, rad2deg(linksd[i].angle()), linksd[i].width / sprite_size, linksd[i].height / sprite_size, TFT_BLACK);
             } else { // body
                 sprite.setColor(body_colors[i].to24Bit());
                 sprite.fillCircle(sprite_size / 2, sprite_size / 2, sprite_size / 2);
                 sprite.pushRotateZoom(&gfx, linksd[i].origin.x, linksd[i].origin.y, rad2deg(linksd[i].angle()), linksd[i].width / sprite_size, linksd[i].height / sprite_size, TFT_BLACK);
             }
-            //gfx.fillCircle(linksd[i].origin.x, linksd[i].origin.y, 3, head_color.to24Bit());
+        }
+        // 折返しチェック
+        if (do_reverse) {
+            float xg1 = display.toLocal(Vec2(display.width, 0)).x;
+            float xg0 = display.toLocal(Vec2(0, 0)).x;
+            float mergin = (xg1 - xg0) * reverse_mergin;
+            if (direction > 0 && display.isOutD(linksd[0]).right) { // turn left
+                setPosition(xg1 + mergin, -1);
+            } else if (direction < 0 && display.isOutD(linksd[0]).left) { // turn right
+                setPosition(xg0 - mergin, 1);
+            }
         }
     }
 };

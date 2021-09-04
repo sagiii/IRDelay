@@ -74,7 +74,14 @@ struct WormGeometry {
         , head_xg(head_xg_)
         , tail_xg(tail_xg_)
         , phase(phase_)
-        {}
+        {
+            ease0.poly = Easing::QUART;
+            ease0.in = true;
+            ease0.out = true;
+            ease1.poly = Easing::QUAD;
+            ease1.in = true;
+            ease1.out = true;
+        }
     virtual void init()
     {
         tick(0);
