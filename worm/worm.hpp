@@ -2,6 +2,7 @@
 
 #include "easing.hpp"
 #include "vec2.hpp"
+#include "general.hpp"
 #include <vector>
 
 using namespace std;
@@ -21,6 +22,24 @@ using namespace std;
 struct Pos2 {
     Vec2 origin; // リンクの原点の空間中での位置
     Vec2 axis; // リンク座標系のx軸の空間中での表現での(単位)ベクトル
+    Vec2 toGlobal(Vec2 const &local) {
+        return origin + axis * local.x + axis.rotated90() * local.y;
+    }
+    float angle() {
+        return atan2(axis.y, axis.x);
+    }
+};
+
+struct Link2 : public Pos2 {
+    float width, height; // リンクの寸法
+    std::vector<Vec2> fourPoints(void) {
+        std::vector<Vec2> points;
+        points.push_back(this->toGlobal(Vec2(width / 2, 0)));
+        points.push_back(this->toGlobal(Vec2(0, height / 2)));
+        points.push_back(this->toGlobal(Vec2(-width / 2, 0)));
+        points.push_back(this->toGlobal(Vec2(0, -height / 2)));
+        return points;
+    }
 };
 
 /**
@@ -33,6 +52,7 @@ struct WormGeometry {
     float thick;
     float head_magnify;
     unsigned int division;
+    float width_magnify; // 全体節の幅に定数をかけて、体節を重複させて自然に見せる。
     // movement
     int direction; // +1 = +x, -1 = -x.
     float head_xg; // 接地点の位置。yは常に0なので省略。
@@ -41,19 +61,21 @@ struct WormGeometry {
     float bend; // 屈曲状態。0 ~ 1が標準。1.1が限界。
     Easing ease0, ease1; // phaseからbendに変換する関係性。0 = 屈曲時、 1 = 伸展時。
     float speed; // phase / sec
-    std::vector<Pos2> linksw; // 直前に算出されたリンク位置。尾がインデックス[0]。
-    std::vector<Pos2> linksg; // linksのground座標系
-    WormGeometry(float length_, float thick_, float head_magnify_, unsigned int division_, int direction_ = 1, float head_xg_ = 0, float tail_xg_ = 0, float phase_ = 0)
+    std::vector<Link2> linksw; // 直前に算出されたリンク位置。尾がインデックス[0]。
+    std::vector<Link2> linksg; // linksのground座標系
+    std::vector<float> ratios; // 頭から尾までのリンクの媒介変数値リスト。こちらは0 = 頭、1 = 尾。
+    WormGeometry(float length_, float thick_, float head_magnify_, float width_magnify_, unsigned int division_, int direction_ = 1, float head_xg_ = 0, float tail_xg_ = 0, float phase_ = 0)
         : length(length_)
         , thick(thick_)
         , head_magnify(head_magnify_)
         , division(division_)
+        , width_magnify(width_magnify_)
         , direction(direction_)
         , head_xg(head_xg_)
         , tail_xg(tail_xg_)
         , phase(phase_)
         {}
-    void init()
+    virtual void init()
     {
         tick(0);
     }
@@ -75,16 +97,29 @@ struct WormGeometry {
         float mag = length / (2 * PI * .9);
         // worm座標系での更新
         linksw.resize(division);
+        ratios.resize(division);
         for (int i = 0; i < division; i++) {
-            float t = map(i, 0, division - 1, -.5 * PI, 1.5 * PI);
+            float t = fmap(i, 0, division - 1, -.5 * PI, 1.5 * PI);
             linksw[i].origin.x = mag * (a * t - b * sin(2 * t));
             linksw[i].origin.y = mag * bend * sin(t);
             Vec2 axis(a - b * 2 * cos(2 * t), bend * cos(t));
             linksw[i].axis = axis.normalized();
+            // リンクの寸法
+            linksw[i].width = length / division * width_magnify;
+            linksw[i].height = thick;
+            if (i == division - 1) { // 頭だけ拡大する
+                linksw[i].width *= head_magnify;
+                linksw[i].height *= head_magnify;
+            }
+            ratios[i] = fmap(i, division - 1, 0, 0, 1);
+            Serial.printf("%f, ", ratios[i]);
         }
+        Serial.println();
         Vec2 headw, tailw; // worm座標での頭と尾の接地点位置。
-        tailw = linksw[0].origin - linksw[0].axis.rotated90() * thick / 2;
-        headw = linksw[division - 1].origin - linksw[division - 1].axis.rotated90() * thick / 2;
+        tailw = linksw[0].toGlobal(Vec2(0, -thick / 2));
+        headw = linksw[division - 1].toGlobal(Vec2(0, -thick / 2));
+        //tailw = linksw[0].origin - linksw[0].axis.rotated90() * thick / 2;
+        //headw = linksw[division - 1].origin - linksw[division - 1].axis.rotated90() * thick / 2;
         // ground座標系での更新
         Vec2 groundedg = Vec2(is_head_grounded ? head_xg : tail_xg, 0);
         Vec2 groundedw = is_head_grounded ? headw : tailw;
@@ -95,6 +130,8 @@ struct WormGeometry {
             Vec2 tmp = linksw[i].origin - groundedw;
             tmp.x *= direction;
             linksg[i].origin = tmp + groundedg;
+            linksg[i].width = linksw[i].width;
+            linksg[i].height = linksw[i].height;
         }
         head_xg = linksg[division - 1].origin.x;
         tail_xg = linksg[0].origin.x;

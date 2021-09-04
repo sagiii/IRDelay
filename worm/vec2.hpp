@@ -1,3 +1,7 @@
+/**
+ * Almost copied from Qiita written by @Reputeless : https://qiita.com/Reputeless/items/96226cfe1282a014b147
+ */
+
 #pragma once 
 
 #include <cmath>
@@ -111,7 +115,7 @@ inline constexpr Vec2 operator *(double s, const Vec2& v)
 {
     return{ s*v.x, s*v.y };
 }
-
+/*
 template <class Char>
 inline std::basic_ostream<Char>& operator <<(std::basic_ostream<Char>& os, const Vec2& v)
 {
@@ -124,3 +128,4 @@ inline std::basic_istream<Char>& operator >>(std::basic_istream<Char>& is, Vec2&
     Char unused;
     return is >> unused >> v.x >> unused >> v.y >> unused;
 }
+*/

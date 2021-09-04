@@ -1,6 +1,8 @@
 #pragma once 
 
+#ifndef ESP32
 #include "arduino.hpp"
+#endif
 
 using namespace std;
 
@@ -11,7 +13,8 @@ struct Easing {
     } poly;
     Easing() : in(false), out(false), poly(LINE) {}
     ~Easing() {}
-    float v(float t) {
+    float v(float t)
+    {
         if (t < 0) {
             return 0;
         } else if (t > 1) {
