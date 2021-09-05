@@ -222,12 +222,12 @@ struct WormBehavioral : public WormDrawable {
         }
         float xg1 = display.toLocal(Vec2(display.width, 0)).x;
         float xg0 = display.toLocal(Vec2(0, 0)).x;
-        float mergin = (xg1 - xg0) * reverse_margin;
+        float margin = (xg1 - xg0) * reverse_margin;
         Serial.printf("out_right = %d, out_left = %d, out_behavior = %d\n", out_right, out_left, out_behavior);
         if (out_right && out_behavior == REVERSE || out_left && out_behavior == LOOP) {
-            setPosition(xg1 + mergin, -1);
+            setPosition(xg1 + margin, -1);
         } else {
-            setPosition(xg0 - mergin, 1);
+            setPosition(xg0 - margin, 1);
         }
     }
     void draw(LovyanGFX &gfx, float dt)
