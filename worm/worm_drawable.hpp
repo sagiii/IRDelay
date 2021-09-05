@@ -75,7 +75,7 @@ struct WormDrawable : public WormGeometry {
         , head_color(200, 0, 0)
         , eye_color(255, 255, 0)
         , pupil_color(80, 200, 140)
-        , eye_x(.4), eye_y(.3), eye_r(.35), pupil_r(.2), nose_y_top(-.1), nose_y_bottom(-0.4), nose_x(.15)
+        , eye_x(.4), eye_y(.3), eye_r(.3), pupil_r(.2), nose_y_top(-.1), nose_y_bottom(-0.4), nose_x(.15)
         , body_color0(10, 170, 30)
         , body_color1(10, 80, 20)
         , body_color_mode(GRADATION)
@@ -201,7 +201,7 @@ struct WormBehavioral : public WormDrawable {
     }
     void finish()
     {
-      status = FINISHED;
+        status = FINISHED;
     }
     void outCheck()
     {

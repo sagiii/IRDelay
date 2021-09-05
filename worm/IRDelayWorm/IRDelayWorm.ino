@@ -15,11 +15,14 @@ static LGFX_Sprite sprite(&lcd);
 
 Timer timer;
 
+#define SINGLE (0)
+
+
+#if SINGLE
 Display disp(80, 70, 80, 160, 80);
 WormGeometry geom(0.5, 0.1, 1.1, 2, 15);
 WormBehavioral worm(geom, disp);
-
-#if 0
+#else
 std::vector<Display> displays;
 std::vector<WormBehavioral> worms;
 const int MAX_WORMS = 10;
@@ -32,8 +35,7 @@ void create_depthed_worms(void)
     float mag = exp(fmap(i, 0, MAX_WORMS - 1, log(80), log(10)));
     Display disp(80, mag * 7 / 8, mag, 160, 80);
     displays.push_back(disp);
-    worms.push_back(WormBehavioral(geom, disp));
-    Serial.printf("worm addr[%d] = %lu\n", i, &worms[i]);
+    worms.push_back(WormBehavioral(geom, disp)); // Spriteを含むインスタンスがvector内部でコピーコンストラクタ経由でコピーされるため？Spriteを使う瞬間にパニックする。
   }
 }
 #endif
@@ -56,13 +58,19 @@ void setup()
   sprite.createSprite(M5.Lcd.height(), M5.Lcd.width()); // rotateしているので、幅と高さが入れ替わっている
   lcd.setColorDepth(24);
   sprite.setColorDepth(24);
+#if SINGLE
   worm.init();
   worm.setPosition(-1, 1);
-#if 0
+#else
   create_depthed_worms();
   for (auto i = worms.begin(); i != worms.end(); i++) {
     i->init();
     i->setPosition(-1, 1);
+    {
+      static int j = 0;
+      Serial.printf("worm addr[%d] = %lu\n", j, &(*i));
+      j++;
+    }
   }
 #endif
 }
@@ -91,18 +99,6 @@ void randomize_worm(WormBehavioral &worm)
   worm.randomize_out_behavior = true;
 }
 
-#if 0
-WormBehavioral *find_free_worm()
-{
-  for (auto i = worms.begin(); i != worms.end(); i++) {
-    if (i->status == WormBehavioral::NONE || i->status == WormBehavioral::FINISHED) {
-      return &(*i);
-    }
-  }
-  return 0;
-}
-#endif
-
 void loop()
 {
   M5.update();
@@ -110,22 +106,25 @@ void loop()
   if (M5.BtnA.wasReleased()) {
     ir.turnOff();
     // あおむしの初期化（ランダマイズ、ちいちゃく）
+#if SINGLE
     randomize_worm(worm);
     worm.start(ON_DELAY);
-#if 0
-    WormBehavioral *found = find_free_worm();
-    if (found) {
-      Serial.printf("worm addr = %lu, size = %d\n", &found, worms.size());
+#else
+    auto found = std::find_if(worms.begin(), worms.end(), [](WormBehavioral& w){ return w.status == WormBehavioral::NONE || w.status == WormBehavioral::FINISHED; });
+    if (found != worms.end()) {
+      Serial.printf("worm addr = %lu, size = %d\n", &(*found), worms.size());
       randomize_worm(*found);
       found->start(ON_DELAY);
+      Serial.println("started");
     }
 #endif
   }
 
   if (M5.BtnB.wasReleased()) {
     ir.turnOn();
+#if SINGLE
     worm.finish();
-#if 0
+#else
     for (auto i = worms.begin(); i != worms.end(); i++) {
       i->finish();
     }
@@ -140,10 +139,12 @@ void loop()
   } else {
     sprite.fillScreen(TFT_WHITE);
     float dt = timer.wrap(millis()) / 1000.;
+#if SINGLE
     worm.draw(sprite, dt);
-#if 0
+#else
     for (int i = 0; i < worms.size(); i++) {
       worms[worms.size() - 1 - i].draw(sprite, dt); // 奥から描画
+      Serial.printf("drawn %d\n", worms.size() - 1 - i);
     }
 #endif
     delay(1); // 描画色が変になるのを防ぐ

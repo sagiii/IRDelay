@@ -8,6 +8,8 @@ CPPFLAGS=-std=c++14
 
 main: main.o
 
+main2: main2.o
+
 clean:
 	rm -f *~ *.o main
 

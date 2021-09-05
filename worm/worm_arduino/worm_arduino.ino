@@ -22,6 +22,13 @@ static LGFX_Sprite sprite(&lcd);
 
 Timer timer;
 
+
+void printOut(Display::Out const &out)
+{
+#define BOOL2TF(x) ((x) ? "T" : "F")
+  Serial.printf("left(%s), right(%s), above(%s), below(%s)", BOOL2TF(out.left), BOOL2TF(out.right), BOOL2TF(out.above), BOOL2TF(out.below));
+}
+
 void setup()
 {
   M5.begin();
@@ -51,7 +58,7 @@ void setup()
   worm2.length = 3;
   worm2.division = 30;
   worm2.body_color_mode = WormDrawable::RANDOM;
-  worm2.reverse_margin = 1;
+  //worm2.reverse_mergin = 1;
 }
 
 void loop()
