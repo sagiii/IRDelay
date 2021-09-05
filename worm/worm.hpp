@@ -120,9 +120,7 @@ struct WormGeometry {
                 linksw[i].height *= head_magnify;
             }
             ratios[i] = fmap(i, division - 1, 0, 0, 1);
-            Serial.printf("%f, ", ratios[i]);
         }
-        Serial.println();
         Vec2 headw, tailw; // worm座標での頭と尾の接地点位置。
         tailw = linksw[0].toGlobal(Vec2(0, -thick / 2));
         headw = linksw[division - 1].toGlobal(Vec2(0, -thick / 2));

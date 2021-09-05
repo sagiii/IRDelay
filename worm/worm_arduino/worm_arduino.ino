@@ -51,7 +51,7 @@ void setup()
   worm2.length = 3;
   worm2.division = 30;
   worm2.body_color_mode = WormDrawable::RANDOM;
-  worm2.reverse_mergin = 1;
+  worm2.reverse_margin = 1;
 }
 
 void loop()

@@ -60,21 +60,22 @@ struct Display {
 };
 
 struct WormDrawable : public WormGeometry {
-    Color head_color, eye_color, body_color0, body_color1;
+    Color head_color, eye_color, pupil_color, body_color0, body_color1;
+    float eye_x, eye_y, eye_r, pupil_r, nose_y_top, nose_y_bottom, nose_x;
     enum BodyColorMode {COLOR0, GRADATION, RAINBOW, RANDOM, STRIPE} body_color_mode;
     float rainbow_phase;
     float rainbow_speed; // phase/sec
     unsigned int sprite_size;
     Display display;
-    bool do_reverse; // 画面から居なくなったら自動で折り返すかどうか
-    float reverse_mergin; // 折返し時にあおむしがセットされるのが画面の外に画面幅の何倍行ったところか？
     LGFX_Sprite sprite;
     std::vector<Color> body_colors;
     std::vector<Link2> linksd;
     WormDrawable(WormGeometry const &worm, Display const &display_)
         : WormGeometry(worm)
         , head_color(200, 0, 0)
-        , eye_color(200, 200, 0)
+        , eye_color(255, 255, 0)
+        , pupil_color(80, 200, 140)
+        , eye_x(.4), eye_y(.3), eye_r(.35), pupil_r(.2), nose_y_top(-.1), nose_y_bottom(-0.4), nose_x(.15)
         , body_color0(10, 170, 30)
         , body_color1(10, 80, 20)
         , body_color_mode(GRADATION)
@@ -82,8 +83,6 @@ struct WormDrawable : public WormGeometry {
         , rainbow_speed(2)
         , sprite_size(80)
         , display(display_)
-        , do_reverse(true)
-        , reverse_mergin(0.1)
         {
             sprite.createSprite(sprite_size, sprite_size);
             sprite.setPivot(sprite_size / 2, sprite_size / 2);
@@ -133,25 +132,123 @@ struct WormDrawable : public WormGeometry {
             sprite.clear();
             if (i == division - 1) { // head
                 sprite.setColor(head_color.to24Bit());
+                float mag = sprite_size / 2;
+                float x0 = mag, y0 = mag;
+                // 顔座標は中心を原点とするx,yとも±1で記述している。
+                // sprite座標系への変換式は、p_sprite = p_face * mag + p_0
                 sprite.fillCircle(sprite_size / 2, sprite_size / 2, sprite_size / 2);
-                // TODO : 頭のディテールを描画
-                sprite.pushRotateZoom(&gfx, linksd[i].origin.x, linksd[i].origin.y, rad2deg(linksd[i].angle()), linksd[i].width / sprite_size, linksd[i].height / sprite_size, TFT_BLACK);
+                sprite.setColor(eye_color.to24Bit());
+                sprite.fillCircle(eye_x * mag + x0, eye_y * mag + y0, eye_r * mag);
+                sprite.fillCircle(-eye_x * mag + x0, eye_y * mag + y0, eye_r * mag);
+                sprite.setColor(pupil_color.to24Bit());
+                sprite.fillCircle(eye_x * mag + x0, eye_y * mag + y0, pupil_r * mag);
+                sprite.fillCircle(-eye_x * mag + x0, eye_y * mag + y0, pupil_r * mag);
+                sprite.fillTriangle(
+                    x0, nose_y_top * mag + y0, 
+                    nose_x * mag + x0, nose_y_bottom * mag + y0,
+                    -nose_x * mag + x0, nose_y_bottom * mag + y0);
+                // FIXME : リンクの姿勢が進行方向におうじて反転してしまっている（ベクトルで求めているので）
+                // ダーティフィックスとして、進行方向に180°かけて足す。
+                sprite.pushRotateZoom(&gfx, linksd[i].origin.x, linksd[i].origin.y, rad2deg(linksd[i].angle() + (direction + 1)/2*PI), linksd[i].width / sprite_size, linksd[i].height / sprite_size, TFT_BLACK);
             } else { // body
                 sprite.setColor(body_colors[i].to24Bit());
                 sprite.fillCircle(sprite_size / 2, sprite_size / 2, sprite_size / 2);
-                sprite.pushRotateZoom(&gfx, linksd[i].origin.x, linksd[i].origin.y, rad2deg(linksd[i].angle()), linksd[i].width / sprite_size, linksd[i].height / sprite_size, TFT_BLACK);
+                sprite.pushRotateZoom(&gfx, linksd[i].origin.x, linksd[i].origin.y, rad2deg(linksd[i].angle() + (direction + 1)/2*PI), linksd[i].width / sprite_size, linksd[i].height / sprite_size, TFT_BLACK);
             }
         }
-        // 折返しチェック
-        if (do_reverse) {
-            float xg1 = display.toLocal(Vec2(display.width, 0)).x;
-            float xg0 = display.toLocal(Vec2(0, 0)).x;
-            float mergin = (xg1 - xg0) * reverse_mergin;
-            if (direction > 0 && display.isOutD(linksd[0]).right) { // turn left
-                setPosition(xg1 + mergin, -1);
-            } else if (direction < 0 && display.isOutD(linksd[0]).left) { // turn right
-                setPosition(xg0 - mergin, 1);
+    }
+};
+
+/** 
+ * 挙動を記述する層
+ * 
+ * - 画面外に出たときの挙動
+ *      - 止まる
+ *      - 折り返す
+ *      - 反対から出てくる
+ * - 状態の記述
+ *      - 徐々に太って遅くなって（虹色になって退出する）
+ */
+struct WormBehavioral : public WormDrawable {
+    enum WormStatus {
+        NONE, RUNNING, FINISHED
+    } status;
+    enum OutBehavior {
+        FINISH, // FINISHEDに移行する
+        REVERSE, // 折り返す
+        LOOP // 反対からまた出てくる
+    } out_behavior;
+    float reverse_margin; // 折返し時にあおむしがセットされるのが画面の外に画面幅の何倍行ったところか？
+    bool randomize_out_behavior;
+    float warn_life; // 警告が始まる寿命[s]
+    float finish_life; // 終了に向かい始める寿命[s]
+    float life; // 残り寿命[s]
+    float life_duration; // 寿命の長さ（初期値）[s]
+    WormBehavioral(WormGeometry const &worm, Display const &display_)
+        : WormDrawable(worm, display_)
+        , status(NONE)
+        , out_behavior(REVERSE)
+        , reverse_margin(0.1)
+        , randomize_out_behavior(false)
+        , warn_life(30)
+        , finish_life(10)
+        {}
+    void start(float life_)
+    {
+        life = life_;
+        life_duration = life_;
+        status = RUNNING;
+    }
+    void finish()
+    {
+      status = FINISHED;
+    }
+    void outCheck()
+    {
+        if (out_behavior != REVERSE && out_behavior != LOOP) return;
+        bool out_right = direction > 0 && display.isOutD(linksd[0]).right;
+        bool out_left  = direction < 0 && display.isOutD(linksd[0]).left;
+        if (!out_right && !out_left) return;
+        if (randomize_out_behavior && (out_right || out_left)) {
+            if (random(2) == 0) {
+                out_behavior = REVERSE;
+            } else {
+                out_behavior = LOOP;
             }
         }
+        float xg1 = display.toLocal(Vec2(display.width, 0)).x;
+        float xg0 = display.toLocal(Vec2(0, 0)).x;
+        float mergin = (xg1 - xg0) * reverse_margin;
+        Serial.printf("out_right = %d, out_left = %d, out_behavior = %d\n", out_right, out_left, out_behavior);
+        if (out_right && out_behavior == REVERSE || out_left && out_behavior == LOOP) {
+            setPosition(xg1 + mergin, -1);
+        } else {
+            setPosition(xg0 - mergin, 1);
+        }
+    }
+    void draw(LovyanGFX &gfx, float dt)
+    {
+        if (life < 0) {
+            status = FINISHED;
+        } else {
+            life -= dt;
+        }
+        if (status == NONE || status == FINISHED) return;
+        if (life < finish_life) { // 終了に向かう
+            randomize_out_behavior = false;
+            out_behavior = FINISH;
+        } else if (life < warn_life) { // 警告状態
+            body_color_mode = RAINBOW;
+            rainbow_speed = fmap(life, warn_life, 0, 5, 10);
+        } else { // 通常状態
+            // TODO : 線形だけどもうちょっと工夫する
+            length += 1. / (life_duration - warn_life) * dt;
+            thick += .6 / (life_duration - warn_life) * dt;
+            head_magnify -= .4 / (life_duration - warn_life) * dt;
+            width_magnify += 2 / (life_duration - warn_life) * dt;
+            speed -= 0.6 / (life_duration - warn_life) * dt;
+        }
+        WormDrawable::draw(gfx, dt);
+        outCheck();
     }
 };
