@@ -205,10 +205,14 @@ struct WormBehavioral : public WormDrawable {
     }
     void outCheck()
     {
-        if (out_behavior != REVERSE && out_behavior != LOOP) return;
         bool out_right = direction > 0 && display.isOutD(linksd[0]).right;
         bool out_left  = direction < 0 && display.isOutD(linksd[0]).left;
         if (!out_right && !out_left) return;
+        if (out_behavior == FINISH) {
+          status = FINISHED;
+          out_behavior = REVERSE; // 次回のためにout_behaviorを戻しておく
+          return;
+        }
         if (randomize_out_behavior && (out_right || out_left)) {
             if (random(2) == 0) {
                 out_behavior = REVERSE;
