@@ -81,8 +81,9 @@ void randomize_worm(WormBehavioral &worm)
   worm.length = frand(.5, 1);
   worm.division = random(10, 20);
   worm.head_color = Color(random(100, 255), random(40), random(40));
-  worm.body_color0 = Color(random(40), random(100, 255), random(40));
-  worm.body_color1 = Color(random(40), random(100, 255), random(40));
+  worm.eye_color = Color(random(180, 255), random(180, 255), random(40));
+  worm.body_color0 = Color(random(0, 200), random(100, 255), random(0, 200));
+  worm.body_color1 = Color(random(0, 200), random(100, 255), random(0, 200));
   switch(random(2)) {
     case 0:
     worm.body_color_mode = WormDrawable::GRADATION;

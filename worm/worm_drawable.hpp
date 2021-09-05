@@ -80,7 +80,7 @@ struct WormDrawable : public WormGeometry {
         , body_color1(10, 80, 20)
         , body_color_mode(GRADATION)
         , rainbow_phase(0)
-        , rainbow_speed(2)
+        , rainbow_speed(.3)
         , sprite_size(80)
         , display(display_)
         {
@@ -92,7 +92,7 @@ struct WormDrawable : public WormGeometry {
     {
         // tick
         tick(dt);
-        rainbow_phase += rainbow_speed * dt;
+        rainbow_phase += rainbow_speed * dt * 2 * PI;
         // calculate color
         body_colors.resize(division - 1);
         for (int i = 0; i < division - 1; i++) {
@@ -239,7 +239,7 @@ struct WormBehavioral : public WormDrawable {
             out_behavior = FINISH;
         } else if (life < warn_life) { // 警告状態
             body_color_mode = RAINBOW;
-            rainbow_speed = fmap(life, warn_life, 0, 5, 10);
+            rainbow_speed = fmap(life, warn_life, 0, .2, 1);
         } else { // 通常状態
             // TODO : 線形だけどもうちょっと工夫する
             length += 1. / (life_duration - warn_life) * dt;
