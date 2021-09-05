@@ -100,11 +100,20 @@ void randomize_worm(WormBehavioral &worm)
   worm.randomize_out_behavior = true;
 }
 
+Color background;
+
 void loop()
 {
   M5.update();
 
   if (M5.BtnA.wasReleased()) {
+    if (ir.is_on) {
+      // あおむし始まり
+      int r = random(220, 255);
+      int g = random(r, 255);
+      int b = random(200, r);
+      background = Color(r, g, b);
+    }
     ir.turnOff();
     // あおむしの初期化（ランダマイズ、ちいちゃく）
 #if SINGLE
@@ -136,9 +145,17 @@ void loop()
 
   if (ir.is_on) {
     sprite.fillScreen(TFT_BLACK);
+    sprite.setColor(TFT_GREEN);
+    float offset = - 4 * fabs(sin(millis() / 1000. * .5 * 2 * PI));
+    float cursor_x1 = 159 + offset, cursor_y = 40;
+    float cursor_width = 4, cursor_height = 4;
+    sprite.fillTriangle(
+      cursor_x1 - cursor_width, cursor_y + cursor_height / 2,
+      cursor_x1 - cursor_width, cursor_y - cursor_height / 2,
+      cursor_x1, cursor_y);
     sprite.pushSprite(0, 0);
   } else {
-    sprite.fillScreen(TFT_WHITE);
+    sprite.fillScreen(background.to24Bit());
     float dt = timer.wrap(millis()) / 1000.;
 #if SINGLE
     worm.draw(sprite, dt);
@@ -147,6 +164,26 @@ void loop()
       worms[worms.size() - 1 - i]->draw(sprite, dt); // 奥から描画
     }
 #endif
+    // FIXME : カーソル描画をクラス化/関数化して楽する
+    sprite.setColor(TFT_DARKGRAY);
+    {
+      float offset = 4 * fabs(sin(millis() / 1000. * .5 * 2 * PI));
+      float cursor_y1 = 1 + offset, cursor_x = 80;
+      float cursor_width = 4, cursor_height = 4;
+      sprite.fillTriangle(
+        cursor_x, cursor_y1,
+        cursor_x - cursor_width / 2, cursor_y1 + cursor_height,
+        cursor_x + cursor_width / 2, cursor_y1 + cursor_height);
+    }
+    {
+      float offset = - 4 * fabs(sin(millis() / 1000. * .5 * 2 * PI));
+      float cursor_x1 = 159 + offset, cursor_y = 40;
+      float cursor_width = 4, cursor_height = 4;
+      sprite.fillTriangle(
+        cursor_x1 - cursor_width, cursor_y + cursor_height / 2,
+        cursor_x1 - cursor_width, cursor_y - cursor_height / 2,
+        cursor_x1, cursor_y);
+    }
     delay(1); // 描画色が変になるのを防ぐ
     sprite.pushSprite(0, 0);
   }
