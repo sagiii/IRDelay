@@ -73,11 +73,11 @@ struct WormDrawable : public WormGeometry {
     std::vector<Link2> linksd;
     WormDrawable(WormGeometry const &worm, Display const &display_)
         : WormGeometry(worm)
-        , head_color(255, 0, 0)
-        , eye_color(255, 255, 0)
-        , body_color0(0, 170, 0)
-        , body_color1(0, 80, 0)
-        , body_color_mode(RAINBOW)
+        , head_color(200, 0, 0)
+        , eye_color(200, 200, 0)
+        , body_color0(10, 170, 30)
+        , body_color1(10, 80, 20)
+        , body_color_mode(GRADATION)
         , rainbow_phase(0)
         , rainbow_speed(2)
         , sprite_size(80)
@@ -87,6 +87,7 @@ struct WormDrawable : public WormGeometry {
         {
             sprite.createSprite(sprite_size, sprite_size);
             sprite.setPivot(sprite_size / 2, sprite_size / 2);
+            sprite.setColorDepth(24);
         }
     void draw(LovyanGFX &gfx, float dt)
     {

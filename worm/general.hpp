@@ -6,7 +6,12 @@
 
 float frand()
 {
-    return random(0, 1024) / 1023.;
+    return random(0, 65535) / 65535.;
+}
+
+float frand(float x0, float x1)
+{
+    return frand() * (x1 - x0) + x0;
 }
 
 float fmap(float x, float x0, float x1, float y0, float y1)

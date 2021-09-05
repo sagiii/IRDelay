@@ -58,9 +58,9 @@ struct WormGeometry {
     float head_xg; // 接地点の位置。yは常に0なので省略。
     float tail_xg; // 接地点の位置。yは常に0なので省略。
     float phase; // 0でまっすぐ、0.5で最大屈曲、1でまっすぐ。0~0.5は頭が接地、0.5~1は尾が接地。
+    float speed; // phase / sec
     float bend; // 屈曲状態。0 ~ 1が標準。1.1が限界。
     Easing ease0, ease1; // phaseからbendに変換する関係性。0 = 屈曲時、 1 = 伸展時。
-    float speed; // phase / sec
     std::vector<Link2> linksw; // 直前に算出されたリンク位置。尾がインデックス[0]。
     std::vector<Link2> linksg; // linksのground座標系
     std::vector<float> ratios; // 頭から尾までのリンクの媒介変数値リスト。こちらは0 = 頭、1 = 尾。
@@ -74,6 +74,7 @@ struct WormGeometry {
         , head_xg(head_xg_)
         , tail_xg(tail_xg_)
         , phase(phase_)
+        , speed(1)
         {
             ease0.poly = Easing::QUART;
             ease0.in = true;

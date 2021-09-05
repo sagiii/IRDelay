@@ -22,13 +22,6 @@ static LGFX_Sprite sprite(&lcd);
 
 Timer timer;
 
-
-void printOut(Display::Out const &out)
-{
-#define BOOL2TF(x) ((x) ? "T" : "F")
-  Serial.printf("left(%s), right(%s), above(%s), below(%s)", BOOL2TF(out.left), BOOL2TF(out.right), BOOL2TF(out.above), BOOL2TF(out.below));
-}
-
 void setup()
 {
   M5.begin();
