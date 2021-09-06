@@ -24,7 +24,7 @@ WormGeometry geom(0.5, 0.1, 1.1, 2, 15);
 WormBehavioral worm(geom, disp);
 #else
 std::vector<Display> displays;
-std::vector<WormBehavioral*> worms; // ポインタでない場合、Spriteを含むインスタンスがvector内部でコピーコンストラクタ経由でコピーされるため？Spriteを使う瞬間にパニックする。
+std::vector<WormBehavioral*> worms; // NOTE: ポインタでない場合、Spriteを含むインスタンスがvector内部でコピーコンストラクタ経由でコピーされるため？Spriteを使う瞬間にパニックする。（createSpriteをコンストラクタで行わなければ良い説はあり）
 const int MAX_WORMS = 10;
 
 void create_depthed_worms(void)
@@ -36,6 +36,13 @@ void create_depthed_worms(void)
     Display disp(80, mag * 7 / 8, mag, 160, 80);
     displays.push_back(disp);
     worms.push_back(new WormBehavioral(geom, disp));
+  }
+}
+
+void delete_worms(void)
+{
+  for (auto i = worms.begin(); i != worms.end(); i++) {
+    delete (*i);
   }
 }
 #endif

@@ -1,4 +1,4 @@
-all: main
+all: test
 
 CC=g++
 CPPFLAGS=-std=c++14
@@ -6,10 +6,8 @@ CPPFLAGS=-std=c++14
 .cpp.o:
 	$(CC) -c $(CPPFLAGS) $^ -o $@
 
-main: main.o
-
-main2: main2.o
+test: test.o
 
 clean:
-	rm -f *~ *.o main
+	rm -f *~ *.o test
 

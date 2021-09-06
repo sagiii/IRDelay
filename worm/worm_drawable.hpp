@@ -88,6 +88,10 @@ struct WormDrawable : public WormGeometry {
             sprite.setPivot(sprite_size / 2, sprite_size / 2);
             sprite.setColorDepth(24);
         }
+    ~WormDrawable()
+    {
+        sprite.deleteSprite();
+    }
     void draw(LovyanGFX &gfx, float dt)
     {
         // tick
