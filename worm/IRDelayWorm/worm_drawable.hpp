@@ -1,1 +1,0 @@
-../worm_drawable.hpp
