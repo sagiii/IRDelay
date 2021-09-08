@@ -3,7 +3,7 @@
 #include "worm.hpp"
 #include "color.hpp"
 
-struct Display {
+struct Display { // FIXME: 実体がありそうな名称だが、実際はViewPortくらいの意味合い
     Vec2 origin;
     float magnify;
     unsigned int width, height;
@@ -59,6 +59,9 @@ struct Display {
     }
 };
 
+/**
+ * 描画処理を記述する層
+ */
 struct WormDrawable : public WormGeometry {
     Color head_color, eye_color, pupil_color, body_color0, body_color1;
     float eye_x, eye_y, eye_r, pupil_r, nose_y_top, nose_y_bottom, nose_x;
