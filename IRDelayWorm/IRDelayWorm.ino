@@ -20,7 +20,7 @@ std::vector<Display> displays;
 std::vector<WormBehavioral*> worms; // NOTE: ポインタでない場合、Spriteを含むインスタンスがvector内部でコピーコンストラクタ経由でコピーされるため？Spriteを使う瞬間にパニックする。（createSpriteをコンストラクタで行わなければ良い説はあり）
 const int MAX_WORMS = 10;
 
-void create_depthed_worms(void)
+void createDepthedWorms(void)
 {
   WormGeometry geom(0.5, 0.1, 1.1, 2, 15);
   // 手前は倍率80、奥は倍率10、その間を指数補間
@@ -32,7 +32,7 @@ void create_depthed_worms(void)
   }
 }
 
-void delete_worms(void)
+void deleteWorms(void)
 {
   for (auto i = worms.begin(); i != worms.end(); i++) {
     delete (*i);
@@ -57,7 +57,7 @@ void setup()
   sprite.createSprite(M5.Lcd.height(), M5.Lcd.width()); // rotateしているので、幅と高さが入れ替わっている
   lcd.setColorDepth(24);
   sprite.setColorDepth(24);
-  create_depthed_worms();
+  createDepthedWorms();
   for (auto i = worms.begin(); i != worms.end(); i++) {
     (*i)->init();
     (*i)->setPosition(-1, 1);
@@ -69,7 +69,7 @@ void setup()
   }
 }
 
-void randomize_worm(WormBehavioral &worm)
+void randomizeWorm(WormBehavioral &worm)
 {
   worm.thick = frand(.1, .2);
   worm.length = frand(.5, 1);
@@ -113,7 +113,7 @@ void loop()
     auto found = std::find_if(worms.begin(), worms.end(), [](WormBehavioral *w){ return w->status == WormBehavioral::NONE || w->status == WormBehavioral::FINISHED; });
     if (found != worms.end()) {
       Serial.printf("worm addr = %lu, size = %d\n", *found, worms.size());
-      randomize_worm(**found);
+      randomizeWorm(**found);
       (*found)->start(ON_DELAY);
       Serial.println("started");
     }
