@@ -3,6 +3,8 @@
 
 M5StickC + UnitIR + 赤外線制御のコンセントで作った、子供のトイレトレーニング用遅延スイッチです。
 
+お腹がぺーこぺこー！
+
 ![hoge](images/a.gif)
 ![hoge](images/c.gif)
 
