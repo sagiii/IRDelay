@@ -3,6 +3,9 @@
 
 M5StickC + UnitIR + 赤外線制御のコンセントで作った、子供のトイレトレーニング用遅延スイッチです。
 
+![hoge](images/a.gif)
+![hoge](images/c.gif)
+
 ## 開発背景
 ### 課題
 - 子供（2歳）がウォシュレットが怖くてトイレトレーニングが進まないのでウォシュレットを頻繁にON/OFFしたい
@@ -17,6 +20,8 @@ M5StickC + UnitIR + 赤外線制御のコンセントで作った、子供のト
 
 ## デモ
 - [youtube](https://www.youtube.com/watch?v=YmZ89waXX18)
+- ボタンを押すたびにあおむしが増える：<br>![hoge](images/b.gif)
+- あおむしはタイマーになっていて、太くなって虹色になってから去る：<br>![hoge](images/d.gif)
 
 ## ハードウェア構成
 - M5StickC
