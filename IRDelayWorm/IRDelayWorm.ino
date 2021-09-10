@@ -15,14 +15,7 @@ static LGFX_Sprite sprite(&lcd);
 
 Timer timer;
 
-#define SINGLE (0)
 
-
-#if SINGLE
-Display disp(80, 70, 80, 160, 80);
-WormGeometry geom(0.5, 0.1, 1.1, 2, 15);
-WormBehavioral worm(geom, disp);
-#else
 std::vector<Display> displays;
 std::vector<WormBehavioral*> worms; // NOTE: ポインタでない場合、Spriteを含むインスタンスがvector内部でコピーコンストラクタ経由でコピーされるため？Spriteを使う瞬間にパニックする。（createSpriteをコンストラクタで行わなければ良い説はあり）
 const int MAX_WORMS = 10;
@@ -45,7 +38,6 @@ void delete_worms(void)
     delete (*i);
   }
 }
-#endif
 
 void irUpdated(IRDelay &ir)
 {
@@ -65,10 +57,6 @@ void setup()
   sprite.createSprite(M5.Lcd.height(), M5.Lcd.width()); // rotateしているので、幅と高さが入れ替わっている
   lcd.setColorDepth(24);
   sprite.setColorDepth(24);
-#if SINGLE
-  worm.init();
-  worm.setPosition(-1, 1);
-#else
   create_depthed_worms();
   for (auto i = worms.begin(); i != worms.end(); i++) {
     (*i)->init();
@@ -79,7 +67,6 @@ void setup()
       j++;
     }
   }
-#endif
 }
 
 void randomize_worm(WormBehavioral &worm)
@@ -123,10 +110,6 @@ void loop()
     }
     ir.turnOff();
     // あおむしの初期化（ランダマイズ、ちいちゃく）
-#if SINGLE
-    randomize_worm(worm);
-    worm.start(ON_DELAY);
-#else
     auto found = std::find_if(worms.begin(), worms.end(), [](WormBehavioral *w){ return w->status == WormBehavioral::NONE || w->status == WormBehavioral::FINISHED; });
     if (found != worms.end()) {
       Serial.printf("worm addr = %lu, size = %d\n", *found, worms.size());
@@ -134,18 +117,13 @@ void loop()
       (*found)->start(ON_DELAY);
       Serial.println("started");
     }
-#endif
   }
 
   if (M5.BtnB.wasReleased()) {
     ir.turnOn();
-#if SINGLE
-    worm.finish();
-#else
     for (auto i = worms.begin(); i != worms.end(); i++) {
       (*i)->finish();
     }
-#endif
   }
 
   ir.update(millis());
@@ -164,13 +142,9 @@ void loop()
   } else {
     sprite.fillScreen(background.to24Bit());
     float dt = timer.wrap(millis()) / 1000.;
-#if SINGLE
-    worm.draw(sprite, dt);
-#else
     for (int i = 0; i < worms.size(); i++) {
       worms[worms.size() - 1 - i]->draw(sprite, dt); // 奥から描画
     }
-#endif
     // FIXME : カーソル描画をクラス化/関数化して楽する
     sprite.setColor(TFT_DARKGRAY);
     {
