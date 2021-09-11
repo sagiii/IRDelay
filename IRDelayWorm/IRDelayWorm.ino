@@ -98,6 +98,7 @@ Color background;
 
 void loop()
 {
+  float dt = timer.wrap(millis()) / 1000.;
   M5.update();
 
   if (M5.BtnA.wasReleased()) {
@@ -141,7 +142,6 @@ void loop()
     sprite.pushSprite(0, 0);
   } else {
     sprite.fillScreen(background.to24Bit());
-    float dt = timer.wrap(millis()) / 1000.;
     for (int i = 0; i < worms.size(); i++) {
       worms[worms.size() - 1 - i]->draw(sprite, dt); // 奥から描画
     }
