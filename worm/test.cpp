@@ -1,6 +1,5 @@
 #include <iostream>
 #include "worm.hpp"
-#include "vec2.hpp"
 
 using namespace std;
 

@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "easing.hpp"
-#include "vec2.hpp"
+#include "kinematics.hpp"
 #include "general.hpp"
 #include <vector>
 
@@ -15,32 +15,6 @@ using namespace std;
  * g = ground座標：地面に固定された座標空間
  * d = display座標：画面のピクセル単位の座標空間 // 描画特有
  */
-
-/**
- * 2次元の位置と姿勢を記述するクラス
- */
-struct Pos2 {
-    Vec2 origin; // リンクの原点の空間中での位置
-    Vec2 axis; // リンク座標系のx軸の空間中での表現での(単位)ベクトル
-    Vec2 toGlobal(Vec2 const &local) {
-        return origin + axis * local.x + axis.rotated90() * local.y;
-    }
-    float angle() {
-        return atan2(axis.y, axis.x);
-    }
-};
-
-struct Link2 : public Pos2 {
-    float width, height; // リンクの寸法
-    std::vector<Vec2> fourPoints(void) {
-        std::vector<Vec2> points;
-        points.push_back(this->toGlobal(Vec2(width / 2, 0)));
-        points.push_back(this->toGlobal(Vec2(0, height / 2)));
-        points.push_back(this->toGlobal(Vec2(-width / 2, 0)));
-        points.push_back(this->toGlobal(Vec2(0, -height / 2)));
-        return points;
-    }
-};
 
 /**
  * あおむしの幾何情報を記述するクラス

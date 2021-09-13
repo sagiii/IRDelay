@@ -3,62 +3,6 @@
 #include "worm.hpp"
 #include "color.hpp"
 
-struct Display { // FIXME: 実体がありそうな名称だが、実際はViewPortくらいの意味合い
-    Vec2 origin;
-    float magnify;
-    unsigned int width, height;
-    struct Out {
-        bool left, right, above, below;
-    };
-    Display(float orgx, float orgy, float mag, unsigned int wid, unsigned int hei)
-        : origin(orgx, orgy)
-        , magnify(mag)
-        , width(wid)
-        , height(hei)
-        {}
-    /**
-     * 論理座標 ( 便器上 localと呼ぶ ) をディスプレイ座標に変換
-     */
-    Vec2 toDisplay(Vec2 const &local)
-    {
-        // ディスプレイ座標なのでY軸を反転
-        return Vec2(origin.x + local.x * magnify, origin.y - local.y * magnify);
-    }
-    /**
-     * ディスプレイ座標を論理座標に変換
-     */
-    Vec2 toLocal(Vec2 const &disp)
-    {
-        return Vec2((disp.x - origin.x) / magnify, (disp.y - origin.y) / (- magnify));
-    }
-    /**
-     * 与えられたディスプレイ座標の点がディスプレイの外にいるか判定
-     */
-    Out isOutD(Vec2 const &pointd)
-    {
-        Out out;
-        out.left = pointd.x < 0;
-        out.right = pointd.x > width;
-        out.above = pointd.y < 0;
-        out.below = pointd.y > height;
-        return out;
-    }
-    /**
-     * 与えられたディスプレイ座標のリンクがディスプレイの外にいるか判定
-     * リンクのwidthとheightの大きい方を用いる（回転を考慮してマージンをとる）
-     */
-    Out isOutD(Link2 const &linkd)
-    {
-        Out out;
-        float r = max(linkd.width, linkd.height) / 2;
-        out.left = linkd.origin.x + r < 0;
-        out.right = linkd.origin.x - r > width;
-        out.above = linkd.origin.y + r < 0;
-        out.below = linkd.origin.y - r > height;
-        return out;
-    }
-};
-
 /**
  * 描画処理を記述する層
  */
