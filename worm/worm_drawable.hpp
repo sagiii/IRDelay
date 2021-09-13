@@ -13,11 +13,11 @@ struct WormDrawable : public WormGeometry {
     float rainbow_phase;
     float rainbow_speed; // phase/sec
     unsigned int sprite_size;
-    Display display;
+    View view;
     LGFX_Sprite sprite;
     std::vector<Color> body_colors;
     std::vector<Link2> linksd;
-    WormDrawable(WormGeometry const &worm, Display const &display_)
+    WormDrawable(WormGeometry const &worm, View const &view_)
         : WormGeometry(worm)
         , head_color(200, 0, 0)
         , eye_color(255, 255, 0)
@@ -29,7 +29,7 @@ struct WormDrawable : public WormGeometry {
         , rainbow_phase(0)
         , rainbow_speed(.3)
         , sprite_size(80)
-        , display(display_)
+        , view(view_)
         {
             sprite.createSprite(sprite_size, sprite_size);
             sprite.setPivot(sprite_size / 2, sprite_size / 2);
@@ -69,12 +69,12 @@ struct WormDrawable : public WormGeometry {
                 break;
             }
         }
-        // coordinate conversion (ground -> display)
+        // coordinate conversion (ground -> view)
         linksd.resize(division);
         for (int i = 0; i < division; i++) {
-            linksd[i].origin = display.toDisplay(linksg[i].origin);
-            linksd[i].width = linksg[i].width * display.magnify;
-            linksd[i].height = linksg[i].height * display.magnify;
+            linksd[i].origin = view.toView(linksg[i].origin);
+            linksd[i].width = linksg[i].width * view.magnify;
+            linksd[i].height = linksg[i].height * view.magnify;
             linksd[i].axis.x = linksg[i].axis.x;
             linksd[i].axis.y = -linksg[i].axis.y;
         }
@@ -135,8 +135,8 @@ struct WormBehavioral : public WormDrawable {
     float finish_life; // 終了に向かい始める寿命[s]
     float life; // 残り寿命[s]
     float life_duration; // 寿命の長さ（初期値）[s]
-    WormBehavioral(WormGeometry const &worm, Display const &display_)
-        : WormDrawable(worm, display_)
+    WormBehavioral(WormGeometry const &worm, View const &view_)
+        : WormDrawable(worm, view_)
         , status(NONE)
         , out_behavior(REVERSE)
         , reverse_margin(0.1)
@@ -156,8 +156,8 @@ struct WormBehavioral : public WormDrawable {
     }
     void outCheck()
     {
-        bool out_right = direction > 0 && display.isOutD(linksd[0]).right;
-        bool out_left  = direction < 0 && display.isOutD(linksd[0]).left;
+        bool out_right = direction > 0 && view.isOutD(linksd[0]).right;
+        bool out_left  = direction < 0 && view.isOutD(linksd[0]).left;
         if (!out_right && !out_left) return;
         if (out_behavior == FINISH) {
           status = FINISHED;
@@ -171,8 +171,8 @@ struct WormBehavioral : public WormDrawable {
                 out_behavior = LOOP;
             }
         }
-        float xg1 = display.toLocal(Vec2(display.width, 0)).x;
-        float xg0 = display.toLocal(Vec2(0, 0)).x;
+        float xg1 = view.toLocal(Vec2(view.width, 0)).x;
+        float xg0 = view.toLocal(Vec2(0, 0)).x;
         float margin = (xg1 - xg0) * reverse_margin;
         Serial.printf("out_right = %d, out_left = %d, out_behavior = %d\n", out_right, out_left, out_behavior);
         if (out_right && out_behavior == REVERSE || out_left && out_behavior == LOOP) {

@@ -29,14 +29,14 @@ struct Link2 : public Pos2 {
     }
 };
 
-struct Display { // FIXME: 実体がありそうな名称だが、実際はViewPortくらいの意味合い
+struct View {
     Vec2 origin;
     float magnify;
     unsigned int width, height;
     struct Out {
         bool left, right, above, below;
     };
-    Display(float orgx, float orgy, float mag, unsigned int wid, unsigned int hei)
+    View(float orgx, float orgy, float mag, unsigned int wid, unsigned int hei)
         : origin(orgx, orgy)
         , magnify(mag)
         , width(wid)
@@ -45,7 +45,7 @@ struct Display { // FIXME: 実体がありそうな名称だが、実際はViewP
     /**
      * 論理座標 ( 便器上 localと呼ぶ ) をディスプレイ座標に変換
      */
-    Vec2 toDisplay(Vec2 const &local)
+    Vec2 toView(Vec2 const &local)
     {
         // ディスプレイ座標なのでY軸を反転
         return Vec2(origin.x + local.x * magnify, origin.y - local.y * magnify);
@@ -53,9 +53,9 @@ struct Display { // FIXME: 実体がありそうな名称だが、実際はViewP
     /**
      * ディスプレイ座標を論理座標に変換
      */
-    Vec2 toLocal(Vec2 const &disp)
+    Vec2 toLocal(Vec2 const &view)
     {
-        return Vec2((disp.x - origin.x) / magnify, (disp.y - origin.y) / (- magnify));
+        return Vec2((view.x - origin.x) / magnify, (view.y - origin.y) / (- magnify));
     }
     /**
      * 与えられたディスプレイ座標の点がディスプレイの外にいるか判定

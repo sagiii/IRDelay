@@ -16,7 +16,7 @@ static LGFX_Sprite sprite(&lcd);
 Timer timer;
 
 
-std::vector<Display> displays;
+std::vector<View> views;
 std::vector<WormBehavioral*> worms; // NOTE: ポインタでない場合、Spriteを含むインスタンスがvector内部でコピーコンストラクタ経由でコピーされるため？Spriteを使う瞬間にパニックする。（createSpriteをコンストラクタで行わなければ良い説はあり）
 const int MAX_WORMS = 10;
 
@@ -26,9 +26,9 @@ void createDepthedWorms(void)
   // 手前は倍率80、奥は倍率10、その間を指数補間
   for (int i = 0; i < MAX_WORMS; i++) {
     float mag = exp(fmap(i, 0, MAX_WORMS - 1, log(80), log(10)));
-    Display disp(80, mag * 7 / 8, mag, 160, 80);
-    displays.push_back(disp);
-    worms.push_back(new WormBehavioral(geom, disp));
+    View view(80, mag * 7 / 8, mag, 160, 80);
+    views.push_back(view);
+    worms.push_back(new WormBehavioral(geom, view));
   }
 }
 
